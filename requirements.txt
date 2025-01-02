@@ -6,4 +6,4 @@ sentence-transformers
 faiss-cpu
 huggingface-hub
 pypdf
-python-toml
+toml
