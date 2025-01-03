@@ -1,4 +1,4 @@
-﻿import os
+import os
 import sys
 import subprocess
 import streamlit as st
@@ -109,6 +109,39 @@ def get_conversation_chain(vector_store, api_key):
     
     return conversation_chain
 
+def check_required_packages():
+    required_packages = [
+        'selenium',
+        'beautifulsoup4',
+        'pandas',
+        'requests',
+        'python-dotenv'
+        # tambahkan package lain yang dibutuhkan
+    ]
+    
+    missing_packages = []
+    for package in required_packages:
+        try:
+            __import__(package)
+        except ImportError:
+            missing_packages.append(package)
+    
+    if missing_packages:
+        print(f"Missing packages: {', '.join(missing_packages)}")
+        print("Please add these packages to requirements.txt")
+        return False
+    return True
+
+# Ganti bagian ini
+if __name__ == "__main__":
+    try:
+        if not check_required_packages():  # Ganti install_missing_packages() dengan check_required_packages()
+            st.error("Beberapa package yang dibutuhkan belum terinstall!")
+            st.stop()
+        main()
+    except Exception as e:
+        st.error(f"Terjadi kesalahan: {str(e)}")
+
 # Fungsi utama
 def main():
     try:
@@ -170,5 +203,10 @@ def main():
         st.error(f"Terjadi kesalahan: {str(e)}")
 
 if __name__ == "__main__":
-    install_missing_packages()  # Install package yang diperlukan
-    main()
+    try:
+        if not check_required_packages():  # Ganti install_missing_packages() dengan check_required_packages()
+            st.error("Beberapa package yang dibutuhkan belum terinstall!")
+            st.stop()
+        main()
+    except Exception as e:
+        st.error(f"Terjadi kesalahan: {str(e)}")
