@@ -1,202 +1,219 @@
-import os
-import sys
-import subprocess
 import streamlit as st
+import os
 from langchain_groq import ChatGroq
-from langchain_community.document_loaders import PyPDFLoader
-from langchain.text_splitter import RecursiveCharacterTextSplitter
-from langchain_community.embeddings import HuggingFaceEmbeddings
-from langchain_community.vectorstores import FAISS
 from langchain.chains import ConversationalRetrievalChain
-import toml
+from langchain.memory import ConversationBufferMemory
+from langchain.text_splitter import RecursiveCharacterTextSplitter
+from langchain_community.document_loaders import PyPDFLoader
+from langchain_community.vectorstores import FAISS
+from langchain_community.embeddings import HuggingFaceEmbeddings
+import logging
+from requests.exceptions import Timeout
+import tempfile
+from datetime import datetime
+
+# Konfigurasi logging
+logging.basicConfig(
+    filename='chatbot.log',
+    level=logging.INFO,
+    format='%(asctime)s - %(levelname)s - %(message)s'
+)
 
 # Konstanta
-DOCUMENTS_PATH = "documents"
-MODEL_NAME = "mixtral-8x7b-32768"
+MAX_MESSAGES = 50
+MAX_INPUT_LENGTH = 500
+TIMEOUT_SECONDS = 30
 
-# Instalasi package yang diperlukan
-def install_missing_packages():
-    required_packages = [
-        'streamlit',
-        'langchain_groq',
-        'langchain_community',
-        'langchain',
-        'huggingface_hub',
-        'faiss-cpu',
-        'PyPDF2',
-        'sentence_transformers',
-        'toml'
-    ]
-    
-    for package in required_packages:
-        try:
-            __import__(package)
-        except ImportError:
-            subprocess.check_call([sys.executable, "-m", "pip", "install", package])
+# Konfigurasi Streamlit
+st.set_page_config(page_title="AI Assistant", layout="wide")
 
-# Load API key
-def load_api_key():
+def initialize_session_state():
+    """Inisialisasi session state"""
+    if "messages" not in st.session_state:
+        st.session_state.messages = []
+    if "conversation" not in st.session_state:
+        st.session_state.conversation = None
+    if "vector_store" not in st.session_state:
+        st.session_state.vector_store = None
+
+def setup_groq():
+    """Setup model Groq"""
     try:
-        # Coba ambil dari environment variable dulu
-        api_key = os.getenv('GROQ_API_KEY')
-        if api_key:
-            return api_key
-            
-        # Jika tidak ada, coba dari secrets.toml
-        with open('.streamlit/secrets.toml', 'r') as f:
-            config = toml.load(f)
-            return config.get('GROQ_API_KEY')
-    except FileNotFoundError:
-        st.error("File secrets.toml tidak ditemukan. Pastikan file ada di folder .streamlit/")
-        return None
+        groq_api_key = st.secrets["GROQ_API_KEY"]
+        llm = ChatGroq(
+            temperature=0.3,
+            groq_api_key=groq_api_key,
+            model_name="mixtral-8x7b-32768"
+        )
+        return llm
     except Exception as e:
-        st.error(f"Error membaca API key: {str(e)}")
+        logging.error(f"Error setting up Groq: {str(e)}")
+        st.error("Error initializing AI model. Please check your API key.")
         return None
 
-# Proses dokumen PDF
-def process_documents():
+def process_documents(uploaded_files):
+    """Proses dokumen PDF yang diupload"""
     try:
-        if not os.path.exists(DOCUMENTS_PATH):
-            os.makedirs(DOCUMENTS_PATH)  # Buat folder jika tidak ada
-            st.warning(f"Folder {DOCUMENTS_PATH} telah dibuat. Silakan tambahkan file PDF Anda.")
-            return None
-        
-        pdf_files = [f for f in os.listdir(DOCUMENTS_PATH) if f.endswith('.pdf')]
-        if not pdf_files:
-            st.warning("Tidak ada file PDF yang ditemukan dalam folder documents")
-            return None
-
+        logging.info("Starting document processing")
         documents = []
-        for pdf_file in pdf_files:
-            loader = PyPDFLoader(os.path.join(DOCUMENTS_PATH, pdf_file))
-            documents.extend(loader.load())
+        
+        for uploaded_file in uploaded_files:
+            with tempfile.NamedTemporaryFile(delete=False) as tmp_file:
+                tmp_file.write(uploaded_file.getvalue())
+                tmp_file_path = tmp_file.name
 
+            loader = PyPDFLoader(tmp_file_path)
+            documents.extend(loader.load())
+            os.unlink(tmp_file_path)
+
+        # Text splitter
         text_splitter = RecursiveCharacterTextSplitter(
             chunk_size=1000,
-            chunk_overlap=200,
-            length_function=len
+            chunk_overlap=100
         )
-        
-        chunks = text_splitter.split_documents(documents)
-        
+        splits = text_splitter.split_documents(documents)
+
+        # Embeddings
         embeddings = HuggingFaceEmbeddings(
-            model_name="sentence-transformers/all-MiniLM-L6-v2",
-            model_kwargs={'device': 'cpu'}
+            model_name="sentence-transformers/all-MiniLM-L6-v2"
+        )
+
+        # Create vector store
+        vector_store = FAISS.from_documents(splits, embeddings)
+        st.session_state.vector_store = vector_store
+        
+        logging.info("Document processing completed successfully")
+        return True
+
+    except Exception as e:
+        logging.error(f"Error in document processing: {str(e)}")
+        st.error(f"Error processing documents: {str(e)}")
+        return False
+
+def setup_conversation(llm, vector_store):
+    """Setup conversation chain"""
+    try:
+        memory = ConversationBufferMemory(
+            memory_key="chat_history",
+            return_messages=True
         )
         
-        vector_store = FAISS.from_documents(chunks, embeddings)
-        return vector_store
+        conversation = ConversationalRetrievalChain.from_llm(
+            llm=llm,
+            retriever=vector_store.as_retriever(),
+            memory=memory,
+            verbose=True
+        )
         
+        st.session_state.conversation = conversation
+        logging.info("Conversation chain setup successfully")
+        return True
+
     except Exception as e:
-        st.error(f"Error dalam memproses dokumen: {str(e)}")
+        logging.error(f"Error setting up conversation: {str(e)}")
+        st.error("Error setting up conversation system")
+        return False
+
+def export_chat_history():
+    """Export riwayat chat ke file"""
+    try:
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        filename = f"chat_history_{timestamp}.txt"
+        
+        with open(filename, "w", encoding="utf-8") as f:
+            for message in st.session_state.messages:
+                f.write(f"{message['role']}: {message['content']}\n\n")
+        
+        return filename
+    except Exception as e:
+        logging.error(f"Error exporting chat history: {str(e)}")
         return None
 
-# Inisialisasi conversation chain
-def get_conversation_chain(vector_store, api_key):
-    llm = ChatGroq(
-        groq_api_key=api_key,
-        model_name=MODEL_NAME,
-        temperature=0.3,
-        max_tokens=1024,
-        top_p=1
-    )
-    
-    conversation_chain = ConversationalRetrievalChain.from_llm(
-        llm=llm,
-        retriever=vector_store.as_retriever(),
-        return_source_documents=True
-    )
-    
-    return conversation_chain
-
-def check_required_packages():
-    required_packages = [
-        'selenium',
-        'beautifulsoup4',
-        'pandas',
-        'requests',
-        'python-dotenv'
-        # tambahkan package lain yang dibutuhkan
-    ]
-    
-    missing_packages = []
-    for package in required_packages:
-        try:
-            __import__(package)
-        except ImportError:
-            missing_packages.append(package)
-    
-    if missing_packages:
-        print(f"Missing packages: {', '.join(missing_packages)}")
-        print("Please add these packages to requirements.txt")
-        return False
-    return True
-
-# Fungsi utama
 def main():
-    try:
-        st.title(":blue[🤖] LCV ASSISTANT")
+    initialize_session_state()
+    
+    st.title("AI Assistant")
+    
+    # Sidebar
+    with st.sidebar:
+        st.header("Settings")
+        uploaded_files = st.file_uploader(
+            "Upload PDF Documents",
+            type=["pdf"],
+            accept_multiple_files=True
+        )
         
-        # Initialize session state untuk menyimpan riwayat chat
-        if 'messages' not in st.session_state:
-            st.session_state.messages = []
-
-        # Load API key
-        api_key = load_api_key()
-        if not api_key:
-            st.error("API key tidak ditemukan. Pastikan file secrets.toml berisi GROQ_API_KEY")
-            return
-
-        # Initialize vector store
-        if 'vector_store' not in st.session_state:
-            with st.spinner('Mempersiapkan sistem...'):
-                vector_store = process_documents()
-                if vector_store is None:
-                    return
-                st.session_state.vector_store = vector_store
-                st.session_state.conversation = get_conversation_chain(
-                    st.session_state.vector_store,
-                    api_key
-                )
-
-        # Tampilkan riwayat chat
-        for message in st.session_state.messages:
-            with st.chat_message(message["role"]):
-                st.markdown(message["content"])
-
-        # Input chat
-        if prompt := st.chat_input("Tuliskan pertanyaan Anda disini secara spesifik"):
-            try:
-                if not prompt.strip():  # Cek input kosong
-                    st.warning("Mohon masukkan pertanyaan yang valid")
-                    return
+        if uploaded_files:
+            with st.spinner("Processing documents..."):
+                if process_documents(uploaded_files):
+                    st.success("Documents processed successfully!")
                     
-                st.session_state.messages.append({"role": "user", "content": prompt})
-                with st.chat_message("user"):
-                    st.markdown(prompt)
-
-                with st.chat_message("assistant"):
-                    try:
-                        modified_prompt = "Berikan jawaban selalu dalam bahasa Indonesia yang baik dan terstruktur. Jika tidak tahu, katakan Mohon Maaf saya tidak mendapatkan hal ini dalam pelatihan saya: " + prompt
-                        with st.spinner("🤔 Sedang berpikir..."):
-                            response = st.session_state.conversation({"question": modified_prompt})
-                        st.markdown(response['answer'])
-                        st.session_state.messages.append({"role": "assistant", "content": response['answer']})
-                    except Exception as e:
-                        error_message = "Maaf, terjadi kesalahan saat memproses pertanyaan Anda. Silakan coba lagi."
-                        st.error(f"{error_message}\nDetail error: {str(e)}")
-                        st.session_state.messages.append({"role": "assistant", "content": error_message})
+                    # Setup LLM and conversation
+                    llm = setup_groq()
+                    if llm and setup_conversation(llm, st.session_state.vector_store):
+                        st.success("AI Assistant is ready!")
+        
+        if st.button("Reset Conversation"):
+            st.session_state.messages = []
+            st.session_state.conversation = None
+            st.session_state.vector_store = None
+            logging.info("Conversation reset")
+            st.experimental_rerun()
+            
+        if st.button("Export Chat History"):
+            if st.session_state.messages:
+                filename = export_chat_history()
+                if filename:
+                    st.success(f"Chat history exported to {filename}")
+                else:
+                    st.error("Failed to export chat history")
+    
+    # Display chat messages
+    for message in st.session_state.messages:
+        with st.chat_message(message["role"]):
+            st.write(message["content"])
+    
+    # Chat input
+    if prompt := st.chat_input("Ask a question about your documents"):
+        if len(prompt) > MAX_INPUT_LENGTH:
+            st.warning(f"Question too long. Maximum {MAX_INPUT_LENGTH} characters allowed.")
+            return
+            
+        if not st.session_state.conversation:
+            st.warning("Please upload documents first!")
+            return
+            
+        # Add user message
+        st.session_state.messages.append({"role": "user", "content": prompt})
+        with st.chat_message("user"):
+            st.write(prompt)
+            
+        # Generate AI response
+        with st.chat_message("assistant"):
+            message_placeholder = st.empty()
+            try:
+                with st.spinner("Thinking..."):
+                    response = st.session_state.conversation(
+                        {"question": prompt},
+                        timeout=TIMEOUT_SECONDS
+                    )
+                    ai_response = response["answer"]
+                    
+                message_placeholder.write(ai_response)
+                st.session_state.messages.append(
+                    {"role": "assistant", "content": ai_response}
+                )
+                
+                # Limit message history
+                if len(st.session_state.messages) > MAX_MESSAGES:
+                    st.session_state.messages = st.session_state.messages[-MAX_MESSAGES:]
+                    
+            except Timeout:
+                message_placeholder.error("Request timed out. Please try again.")
+                logging.error("Request timeout occurred")
             except Exception as e:
-                st.error(f"Terjadi kesalahan: {str(e)}")
-
-    except Exception as e:
-        st.error(f"Terjadi kesalahan: {str(e)}")
+                message_placeholder.error(f"An error occurred: {str(e)}")
+                logging.error(f"Error generating response: {str(e)}")
 
 if __name__ == "__main__":
-    try:
-        if not check_required_packages():  # Ganti install_missing_packages() dengan check_required_packages()
-            st.error("Beberapa package yang dibutuhkan belum terinstall!")
-            st.stop()
-        main()
-    except Exception as e:
-        st.error(f"Terjadi kesalahan: {str(e)}")
+    main()
