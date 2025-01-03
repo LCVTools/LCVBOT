@@ -132,7 +132,7 @@ def export_chat_history():
 def main():
     initialize_session_state()
     
-    st.title("::blue[🤖]LCV Assistant")
+    st.title("🤖 LCV Assistant")
     
     # Sidebar
     with st.sidebar:
