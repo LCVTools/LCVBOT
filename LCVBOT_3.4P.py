@@ -132,16 +132,6 @@ def check_required_packages():
         return False
     return True
 
-# Ganti bagian ini
-if __name__ == "__main__":
-    try:
-        if not check_required_packages():  # Ganti install_missing_packages() dengan check_required_packages()
-            st.error("Beberapa package yang dibutuhkan belum terinstall!")
-            st.stop()
-        main()
-    except Exception as e:
-        st.error(f"Terjadi kesalahan: {str(e)}")
-
 # Fungsi utama
 def main():
     try:
