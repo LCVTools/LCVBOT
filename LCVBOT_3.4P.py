@@ -139,7 +139,7 @@ def main():
         <div style='background-color: #f0f2f6; padding: 1rem; border-radius: 0.5rem;'>
         <p style='font-size: 18px; margin: 0;'>
         <strong>Selamat datang !</strong> - Chatbot ini adalah Asisten yang dilatih oleh CCM untuk membantu AoC dalam implementasi LCV AKHLAK 2025.
-        Pastikanlah Anda memiliki koneksi internet yang baik dan stabil. Terimakasih atas kesabarannya menunggu chatbot siap untuk digunakan.
+        Pastikanlah Anda memiliki koneksi internet yang baik dan stabil. Terimakasih atas kesabarannya menunggu chatbot siap untuk digunakan 🙏
         </p>
         </div>
         """,
