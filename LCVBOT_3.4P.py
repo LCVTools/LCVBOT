@@ -26,7 +26,7 @@ MAX_INPUT_LENGTH = 500
 TIMEOUT_SECONDS = 30
 
 # Konfigurasi Streamlit
-st.set_page_config(page_title="AI Assistant", layout="wide")
+st.set_page_config(page_title="LCV ASSISTANT", layout="wide")
 
 def initialize_session_state():
     """Inisialisasi session state"""
@@ -186,7 +186,7 @@ def main():
             st.write(message["content"])
     
     # Chat input
-    if prompt := st.chat_input("Tuliskan pertanyaan Anda disini secara spesifik"):
+    if prompt := st.chat_input("✍️Tuliskan pertanyaan Anda disini secara spesifik"):
         if len(prompt) > MAX_INPUT_LENGTH:
             st.warning(f"Question too long. Maximum {MAX_INPUT_LENGTH} characters allowed.")
             return
