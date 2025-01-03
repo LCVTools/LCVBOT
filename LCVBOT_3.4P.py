@@ -134,6 +134,17 @@ def main():
     initialize_session_state()
     
     st.title("🤖 LCV Assistant")
+     st.markdown(
+     """
+     <div style='background-color: #f0f2f6; padding: 1rem; border-radius: 0.5rem;'>
+     <p style='font-size: 18px; margin: 0;'>
+     <strong>Selamat datang !</strong> - Chatbot ini adalah Asisten yang dilatih oleh CCM untuk membantu AoC dalam implementasi LCV AKHLAK 2025.
+     Pastikanlah Anda memiliki koneksi internet yang baik dan stabil. Terimakasih atas kesabarannya menunggu chatbot siap untuk digunakan.
+     </p>
+     </div>
+     """,
+     unsafe_allow_html=True
+     )
     
     # Sidebar
     with st.sidebar:
@@ -175,7 +186,7 @@ def main():
             st.write(message["content"])
     
     # Chat input
-    if prompt := st.chat_input("Ask a question about your documents"):
+    if prompt := st.chat_input("Tuliskan pertanyaan Anda disini secara spesifik"):
         if len(prompt) > MAX_INPUT_LENGTH:
             st.warning(f"Question too long. Maximum {MAX_INPUT_LENGTH} characters allowed.")
             return
@@ -193,7 +204,7 @@ def main():
         with st.chat_message("assistant"):
             message_placeholder = st.empty()
             try:
-                with st.spinner("Thinking..."):
+                with st.spinner("🤔 Sedang berpikir..."):
                     response = st.session_state.conversation.invoke(
                         {"question": prompt},
                         timeout=TIMEOUT_SECONDS
@@ -215,6 +226,14 @@ def main():
             except Exception as e:
                 message_placeholder.error(f"An error occurred: {str(e)}")
                 logging.error(f"Error generating response: {str(e)}")
-
+    # Disclaimer
+    st.markdown(
+        """
+        <p style='font-size: 12px; font-style: italic; color: gray;'>
+        ⚠️ <strong>Disclaimer:</strong> AI-LLM model dapat saja membuat kesalahan. CEK KEMBALI INFO PENTING.
+        </p>
+        """,
+        unsafe_allow_html=True
+    )
 if __name__ == "__main__":
     main()
