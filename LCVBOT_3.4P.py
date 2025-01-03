@@ -132,7 +132,7 @@ def export_chat_history():
 def main():
     initialize_session_state()
     
-    st.title("AI Assistant")
+    st.title("::blue[🤖]LCV Assistant")
     
     # Sidebar
     with st.sidebar:
@@ -193,7 +193,7 @@ def main():
             message_placeholder = st.empty()
             try:
                 with st.spinner("Thinking..."):
-                    response = st.session_state.conversation(
+                    response = st.session_state.conversation.invoke(
                         {"question": prompt},
                         timeout=TIMEOUT_SECONDS
                     )
