@@ -1,10 +1,4 @@
 import streamlit as st
-# Konfigurasi halaman
-st.set_page_config(
-    page_title="LCV ASSISTANT",
-    page_icon="🤖",
-    layout="wide"
-)
 import os
 from langchain_groq import ChatGroq
 from langchain.chains import ConversationalRetrievalChain
@@ -23,8 +17,7 @@ logging.basicConfig(
     filename='chatbot.log',
     level=logging.INFO,
     format='%(asctime)s - %(levelname)s - %(message)s'
-(
-    
+( 
 # Konstanta
 MAX_MESSAGES = 50
 MAX_INPUT_LENGTH = 500
@@ -89,7 +82,7 @@ def display_pustaka():
         st.sidebar.write("---")
 
 # Konfigurasi Streamlit
-st.set_page_config(page_title="LCV ASSISTANT", layout="centered")
+st.set_page_config(page_title="🤖LCV ASSISTANT", layout="centered")
 
 def initialize_session_state():
     """Inisialisasi session state"""
