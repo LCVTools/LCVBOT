@@ -39,6 +39,11 @@ PUSTAKA_DATA = {
             "url": "https://drive.google.com/file/d/1FTIttFp17nGh5Pfc_w-wS-Xf7D_aLUrg/view?usp=sharing"
         },
         {
+            "title": "Contoh PCB dengan Allignment terhadap 10 Fokus Keberlanjutan Pertamina",
+            "description": "Berbagai contoh PCB yang memiliki program budaya menyasar pada 10 Fokus Keberlnajutan Pertamina.",
+            "url": "https://drive.google.com/file/d/17Bx_ha1o01UsrovI6TVadmupP9LxN-J5/view?usp=sharing"
+        },
+        {
             "title": "Contoh Klasifikasi Program",
             "description": "Contoh-contoh klasifikasi Program Strategis, Taktikal, Operasional.",
             "url": "https://docs.google.com/spreadsheets/d/1irDS2zSD8yavfEf5uLDSpuCY65T_UIe0/edit?usp=sharing"
