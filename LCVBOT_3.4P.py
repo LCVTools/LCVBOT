@@ -1,4 +1,10 @@
 import streamlit as st
+# Konfigurasi halaman
+st.set_page_config(
+    page_title="LCV ASSISTANT",
+    page_icon="🤖",
+    layout="wide"
+)
 import os
 from langchain_groq import ChatGroq
 from langchain.chains import ConversationalRetrievalChain
@@ -17,15 +23,6 @@ logging.basicConfig(
     filename='chatbot.log',
     level=logging.INFO,
     format='%(asctime)s - %(levelname)s - %(message)s'
-)
-
-# Konfigurasi halaman
-st.set_page_config(
-    page_title="LCV ASSISTANT",
-    page_icon="🤖",
-    layout="wide"
-)
-
 # Konstanta
 MAX_MESSAGES = 50
 MAX_INPUT_LENGTH = 500
@@ -108,7 +105,7 @@ def setup_groq():
     try:
         groq_api_key = st.secrets["GROQ_API_KEY"]
         llm = ChatGroq(
-            temperature=0.36,
+            temperature=0.45,
             groq_api_key=groq_api_key,
             model_name="mixtral-8x7b-32768"
         )
