@@ -186,6 +186,14 @@ def main():
         """,
         unsafe_allow_html=True
     )
+    # Header
+    st.markdown("""
+    ---
+    **Disclaimer:**
+    - Sistem ini menggunakan AI dan dapat menghasilkan jawaban yang tidak selalu akurat
+    - ketik : LANJUTKAN JAWABANMU untuk kemungkinan mendapatkan jawaban yang lebih baik dan utuh.
+    - Mohon verifikasi informasi penting dengan sumber terpercaya
+    """)
 
     # Proses dokumen otomatis
     if not st.session_state.documents_processed:
@@ -234,15 +242,6 @@ def main():
                 message_placeholder.error("Waktu permintaan habis. Silakan coba lagi.")
             except Exception as e:
                 message_placeholder.error(f"Terjadi kesalahan: {str(e)}")
-
-# Header
-st.markdown("""
----
-**Disclaimer:**
-- Sistem ini menggunakan AI dan dapat menghasilkan jawaban yang tidak selalu akurat
-- ketik : LANJUTKAN JAWABANMU untuk kemungkinan mendapatkan jawaban yang lebih baik dan utuh.
-- Mohon verifikasi informasi penting dengan sumber terpercaya
-""")
 
 if __name__ == "__main__":
     try:
