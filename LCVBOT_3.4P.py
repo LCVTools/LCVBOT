@@ -19,6 +19,13 @@ logging.basicConfig(
     format='%(asctime)s - %(levelname)s - %(message)s'
 )
 
+# Konfigurasi halaman
+st.set_page_config(
+    page_title="LCV ASSISTANT",
+    page_icon="🤖",
+    layout="wide"
+)
+
 # Konstanta
 MAX_MESSAGES = 50
 MAX_INPUT_LENGTH = 500
@@ -236,14 +243,14 @@ def main():
             except Exception as e:
                 message_placeholder.error(f"Terjadi kesalahan: {str(e)}")
 
-    st.markdown(
-        """
-        <p style='font-size: 12px; font-style: italic; color: gray;'>
-        ⚠️ <strong>Perhatian: AI_LLM dapat membuat kesalahan.</strong> Mohon verifikasi kembali informasi penting yang diberikan.
-        </p>
-        """,
-        unsafe_allow_html=True
-    )
+# Header
+st.markdown("""
+---
+**Disclaimer:**
+- Sistem ini menggunakan AI dan dapat menghasilkan jawaban yang tidak selalu akurat
+- ketik : LANJUTKAN JAWABANMU untuk kemungkinan mendapatkan jawaban yang lebih baik dan utuh.
+- Mohon verifikasi informasi penting dengan sumber terpercaya
+""")
 
 if __name__ == "__main__":
     try:
