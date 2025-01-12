@@ -190,7 +190,7 @@ def main():
     st.markdown("""
     ---
     **Disclaimer:**
-    - Sistem ini menggunakan AI dan dapat menghasilkan jawaban yang tidak selalu akurat
+    - Sistem ini menggunakan AI-LLM dan dapat menghasilkan jawaban yang tidak selalu akurat
     - ketik : LANJUTKAN JAWABANMU untuk kemungkinan mendapatkan jawaban yang lebih baik dan utuh.
     - Mohon verifikasi informasi penting dengan sumber terpercaya
     """)
