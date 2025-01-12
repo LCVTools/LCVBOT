@@ -1,4 +1,4 @@
-import streamlit as st
+mport streamlit as st
 import os
 from langchain_groq import ChatGroq
 from langchain.chains import ConversationalRetrievalChain
@@ -100,7 +100,7 @@ def setup_groq():
     try:
         groq_api_key = st.secrets["GROQ_API_KEY"]
         llm = ChatGroq(
-            temperature=0.45,
+            temperature=0.27,
             groq_api_key=groq_api_key,
             model_name="mixtral-8x7b-32768"
         )
