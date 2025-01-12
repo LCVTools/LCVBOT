@@ -17,7 +17,7 @@ logging.basicConfig(
     filename='chatbot.log',
     level=logging.INFO,
     format='%(asctime)s - %(levelname)s - %(message)s'
-( 
+) 
 # Konstanta
 MAX_MESSAGES = 50
 MAX_INPUT_LENGTH = 500
