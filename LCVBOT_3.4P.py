@@ -242,7 +242,7 @@ def main():
 
 if __name__ == "__main__":
     try:
-    display_pustaka()
-    main()
-except Exception as e:
-    st.error(f"Terjadi kesalahan: {str(e)}")
+        display_pustaka()
+        main()
+    except Exception as e:
+        st.error(f"Terjadi kesalahan: {str(e)}")
