@@ -25,6 +25,58 @@ MAX_INPUT_LENGTH = 500
 TIMEOUT_SECONDS = 30
 DOCUMENTS_PATH = "documents/"  # Folder untuk menyimpan PDF
 
+# Pustaka Data 
+PUSTAKA_DATA = {
+    "files": [
+        {
+            "title": "9 Parameter 2025",
+            "description": "9 Parameter Penilaian LCV AKHLAK 2025",
+            "url": "https://drive.google.com/file/d/11DOL9kG0ttp0ilJ_5ykLrSjKVEI9IJlV/view?usp=sharing"
+        },
+        {
+            "title": "10 Fokus Keberlanjutan Pertamina",
+            "description": "Deskripsi dan contoh-contoh 10 Fokus Keberlanjutan Pertamina",
+            "url": "https://drive.google.com/file/d/1FTIttFp17nGh5Pfc_w-wS-Xf7D_aLUrg/view?usp=sharing"
+        },
+        {
+            "title": "Contoh Klasifikasi Program",
+            "description": "Contoh-contoh klasifikasi program: Strategis, Taktikal, Operasional",
+            "url": "https://docs.google.com/spreadsheets/d/1irDS2zSD8yavfEf5uLDSpuCY65T_UIe0/edit?usp=sharing"
+        },
+        {
+            "title": "Form Kuantifikasi Impact to Business",
+            "description": "Form kuantifikasi impact to business dan contoh pengisian",
+            "url": "https://docs.google.com/spreadsheets/d/1W2jlrIhiJac_1oLd86dSSXLMihgV1KO4/edit?usp=sharing"
+        },
+        {
+            "title": "Sosialisasi LCV 2025",
+            "description": "Materi sosialisasi LCV 2025",
+            "url": "https://drive.google.com/file/d/1iXtwOtd0BCF4tQnz2R2Obek3I2E0h5cM/view?usp=sharing"
+        },
+        {
+            "title": "Dashboard PowerBI",
+            "description": "Nilai Kualitatif Evidence Bulanan",
+            "url": "https://ptm.id/skorlivingcorevaluesAKHLAK"
+        },
+        {
+            "title": "Konfirmasi Evidence",
+            "description": "Form Konfirmasi Evidence LCV 2025",
+            "url": "https://ptm.id/FormKonfirmasiEvidenceLCV2025"
+        }
+    ]
+}
+
+# Fungsi untuk menampilkan Pustaka Dokumen
+def display_pustaka():
+    st.sidebar.title("Referensi Penunjang")
+    st.sidebar.write("Daftar Referensi yang Tersedia:")
+
+    for file in PUSTAKA_DATA['files']:
+        st.sidebar.write(f"**{file['title']}**")
+        st.sidebar.write(f"Deskripsi: {file['description']}")
+        st.sidebar.write(f"URL: {file['url']}")
+        st.sidebar.write("---")
+
 # Konfigurasi Streamlit
 st.set_page_config(page_title="LCV ASSISTANT", layout="centered")
 
@@ -189,4 +241,8 @@ def main():
     )
 
 if __name__ == "__main__":
+    try:
+    display_pustaka()
     main()
+except Exception as e:
+    st.error(f"Terjadi kesalahan: {str(e)}")
